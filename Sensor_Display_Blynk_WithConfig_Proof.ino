@@ -31,10 +31,12 @@ char auth[] = "439c6c8b9e6b43089fbba071d3d1983e";
 char ssid[] = "Phong An";
 char pass[] = "28091963";
 
+WidgetLCD lcd(V6);
+
 class BlynkWrapper
 {
   private:
-    const static unsigned long EMAIL_INTERVAL = 120000;
+    const static unsigned long EMAIL_INTERVAL = 20000;
     bool lastTempAlarm;
     bool lastHumidAlarm;
     unsigned long lastTempEmailTime;
@@ -64,6 +66,7 @@ class BlynkWrapper
     {
       Blynk.email("Server room monitoring alarm", "The humidity is currently out of range");
     }
+
   public:
     void init(char* auth_in, char* ssid_in, char* pass_in)
     {
@@ -77,6 +80,32 @@ class BlynkWrapper
       humidityAlarmEnabled = true;
       humidityAlarmLevel = 50;
     }
+
+    void updateLCD(WidgetLCD lcd, float t, float h)
+    {
+      lcd.clear();
+      if ((t > tempAlarmLevel) && (h > humidityAlarmLevel))
+      {
+        lcd.print(0,0, "Temp: WARNING");
+        lcd.print(0,1, "Humid: WARNING");
+      }
+      else if (t > tempAlarmLevel)
+      {
+        lcd.print(0,0, "Temp: WARNING");
+        lcd.print(0,1, "Humid: OK");      
+      }
+      else if (h > humidityAlarmLevel)
+      {
+        lcd.print(0,0, "Temp: OK");
+        lcd.print(0,1, "Humid: WARNING");  
+      }
+      else
+      {
+        lcd.print(0,0, "Temp: OK");
+        lcd.print(0,1, "Humid: OK");
+      }
+    }
+
     
     void updateTempAlarmLevel(float inputLevel)
     {
@@ -99,17 +128,18 @@ class BlynkWrapper
     {
       if (t > tempAlarmLevel && tempAlarmEnabled)
       {
+        Serial.println("Temperature alarm");
+        notifyTempOutOfRange();
         if (lastTempAlarm)
         {
           // Do nothing
         }
         else
         {
-          Serial.println("Temperature alarm");
-          notifyTempOutOfRange();
           lastTempAlarm = true;
           if (millis() - lastTempEmailTime > EMAIL_INTERVAL)
           {
+            Serial.println("Temp email sent");
             emailTempOutOfRange();
             lastTempEmailTime = millis();
           }
@@ -122,17 +152,18 @@ class BlynkWrapper
       
       if (h > humidityAlarmLevel && humidityAlarmEnabled)
       {
+        Serial.println("Humidity alarm");
+        notifyHumidOutOfRange();
         if (lastHumidAlarm)
         {
           
         }
         else
         {
-          Serial.println("Humidity alarm");
-          notifyHumidOutOfRange();
           lastHumidAlarm = true;
           if (millis() - lastHumidEmailTime > EMAIL_INTERVAL)
           {
+            Serial.println("Humid email sent");
             emailHumidOutOfRange();
             lastHumidEmailTime = millis();
           }
@@ -256,6 +287,7 @@ void loop() {
     display.drawString(0, 16, displayString);  
     display.display();
     ourWrapper.serviceAlarm(t, h);
+    ourWrapper.updateLCD(lcd, t, h);
     ourWrapper.updateTempAndHumid(t, h);
     timeSinceLastRead = 0;
   }
