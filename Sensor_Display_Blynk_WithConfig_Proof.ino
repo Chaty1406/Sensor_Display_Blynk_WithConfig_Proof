@@ -28,8 +28,8 @@ char auth[] = "439c6c8b9e6b43089fbba071d3d1983e";
 
 // Your WiFi credentials.
 // Set password to "" for open networks.
-char ssid[] = "Phong An";
-char pass[] = "28091963";
+char ssid[] = "ASX_Public";
+char pass[] = "!AsxP@ssw0rd";
 
 WidgetLCD lcd(V6);
 
@@ -103,12 +103,12 @@ class BlynkWrapper
       lastHumidEmailTime = millis();
       tempAlarmEnabled = false;
       Blynk.virtualWrite(V4, LOW);
-      tempAlarmLevel = 33;
-      Blynk.virtualWrite(V2, 33);
+      tempAlarmLevel = 22;
+      Blynk.virtualWrite(V2, 22);
       humidityAlarmEnabled = false;
       Blynk.virtualWrite(V5, LOW);
-      humidityAlarmLevel = 50;
-      Blynk.virtualWrite(V3, 50);
+      humidityAlarmLevel = 55;
+      Blynk.virtualWrite(V3, 55);
     }
 
     void updateLCD(WidgetLCD lcd, float t, float h)
