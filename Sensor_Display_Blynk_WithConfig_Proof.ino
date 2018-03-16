@@ -408,7 +408,11 @@ void loop() {
     /*
      * Date and time
      */
-    String currentTime = String(hour()) + ":" + minute();
+    String currentTime;
+    if (minute() < 10)
+      currentTime = String(hour()) + ":0" + minute();
+    else
+      currentTime = String(hour()) + ":" + minute();
     String currentDate = String(month()) + "/" + day() + "/" + year();
     display.setTextAlignment(TEXT_ALIGN_RIGHT);
     display.drawString(128, 32, currentDate);
