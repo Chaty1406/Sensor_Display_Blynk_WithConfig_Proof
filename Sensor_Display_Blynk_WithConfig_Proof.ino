@@ -1,4 +1,4 @@
-/**
+  /**
    DHT22 + SH1106 test program
    Pin connection scheme
    SH1106 OLED
@@ -14,6 +14,8 @@
 #include <Wire.h>
 #include <BlynkSimpleEsp8266.h>
 #include "SH1106.h"
+#include "xbmFiles.h"
+#include <WidgetRTC.h>
 
 SH1106 display(0x3c, D3, D5);
 
@@ -23,35 +25,10 @@ char auth[] = "439c6c8b9e6b43089fbba071d3d1983e";
 
 // Your WiFi credentials.
 // Set password to "" for open networks.
-char ssid[] = "CHATY";
-char pass[] = "#Varicella";
+char ssid[] = "Phong An";
+char pass[] = "28091963";
 
 WidgetLCD lcd(V6);
-
-#define logo_width 46
-#define logo_height 40
-const char logo_short[] PROGMEM = {
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x01, 0x00, 0x00,
-  0x00, 0x00, 0xE0, 0x03, 0x00, 0x00, 0x00, 0x00, 0xE0, 0x06, 0x00, 0x00,
-  0x00, 0x00, 0x70, 0x06, 0x00, 0x00, 0x00, 0x00, 0x78, 0x0C, 0x00, 0x00,
-  0x00, 0x00, 0x78, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x78, 0x08, 0x00, 0x00,
-  0x00, 0x00, 0x7C, 0x18, 0x00, 0x00, 0x00, 0x00, 0x7C, 0x18, 0x00, 0x00,
-  0x00, 0x00, 0x7E, 0xB0, 0x0F, 0x00, 0x00, 0x00, 0x3E, 0xF8, 0x50, 0x00,
-  0x00, 0x00, 0x7F, 0x3F, 0xC0, 0x01, 0x00, 0x00, 0xFF, 0x33, 0x80, 0x01,
-  0x00, 0x80, 0xFF, 0x60, 0x80, 0x03, 0x00, 0x80, 0x3F, 0x60, 0x80, 0x01,
-  0x00, 0x80, 0x3F, 0xE0, 0x80, 0x03, 0x00, 0xC0, 0x3F, 0x60, 0x80, 0x01,
-  0x00, 0xE0, 0x3F, 0xC0, 0xC0, 0x00, 0x00, 0xF8, 0x3F, 0xE0, 0xE0, 0x00,
-  0x00, 0xFC, 0x3F, 0xC0, 0x71, 0x00, 0x00, 0xE6, 0x3F, 0xC0, 0x71, 0x00,
-  0x80, 0xE7, 0x3F, 0x80, 0x1D, 0x00, 0xC0, 0xE3, 0x3F, 0xC0, 0x1F, 0x00,
-  0xC0, 0xF0, 0x3F, 0x80, 0x07, 0x00, 0xF0, 0xF0, 0x3F, 0xC0, 0x03, 0x00,
-  0x70, 0xF8, 0x1F, 0xE0, 0x03, 0x00, 0x38, 0xF8, 0x3F, 0xF0, 0x03, 0x00,
-  0x38, 0xF8, 0x1F, 0x1C, 0x07, 0x00, 0x1C, 0xF8, 0x1F, 0x8F, 0x07, 0x00,
-  0x18, 0xFC, 0xDF, 0x03, 0x07, 0x00, 0x1C, 0xFC, 0xFF, 0x01, 0x07, 0x00,
-  0x18, 0xFC, 0x3F, 0x00, 0x0F, 0x00, 0x38, 0xFE, 0x1F, 0x00, 0x0F, 0x00,
-  0xE0, 0xFE, 0x1F, 0x00, 0x0F, 0x00, 0x80, 0xFF, 0x1F, 0x00, 0x0E, 0x00,
-  0x00, 0xFE, 0x1F, 0x00, 0x1E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-};
 
 class SI7021Wrapper
 {
@@ -219,6 +196,12 @@ class BlynkWrapper
     {
       tempAlarmLevel = inputLevel;
     }
+
+    float getTempAlarmLevel()
+    {
+      return tempAlarmLevel;
+    }
+    
     void updateTempAlarmEnabled(bool input)
     {
       tempAlarmEnabled = input;
@@ -226,6 +209,10 @@ class BlynkWrapper
     void updateHumidityAlarmLevel(float inputLevel)
     {
       humidityAlarmLevel = inputLevel;
+    }
+    float getHumidityAlarmLevel()
+    {
+      return humidityAlarmLevel;
     }
     void updateHumidityAlarmEnabled(bool input)
     {
@@ -297,6 +284,7 @@ class BlynkWrapper
 
 BlynkWrapper ourWrapper;
 SI7021Wrapper sensorWrapper;
+WidgetRTC rtc;
 
 BLYNK_WRITE(V2)
 {
@@ -326,6 +314,10 @@ BLYNK_WRITE(V5)
   ourWrapper.updateHumidityAlarmEnabled((bool) param.asInt());
 }
 
+BLYNK_CONNECTED() {
+  // Synchronize time on connection
+  rtc.begin();
+}
 
 void setup() {
   Serial.begin(9600);
@@ -345,10 +337,11 @@ void setup() {
   display.clear();
   display.setFont(ArialMT_Plain_16);
   display.setTextAlignment(TEXT_ALIGN_LEFT);
-  display.drawXbm(41, 23, logo_width, logo_height, logo_short);
+  display.drawXbm(0, 0, logo_width, logo_height, logo_short);
   display.display();
   sensorWrapper.init();
   ourWrapper.init(auth, ssid, pass);
+  setSyncInterval(10 * 60); // Sync interval in seconds (10 minutes)
   delay(2000);
 }
 
@@ -369,13 +362,57 @@ void loop() {
     {
       Serial.println("Failed to read from SI7021!");
       delay(500);
-      return;
+      t = -1;
+      h = -1;
     }
-    
-    timeSinceLastRead = millis();
-    String displayString = String(t) + "C " + String(h) + "%";
-    Serial.println(displayString);
-    display.drawString(0, 16, displayString);
+    String tempString;
+    String humidityString;
+    display.setTextAlignment(TEXT_ALIGN_LEFT);
+    if ((t != -1) && (h != -1))
+    {
+      timeSinceLastRead = millis();
+      tempString = String(t) + "C ";
+      humidityString = String(h) + "%";
+      Serial.println(tempString + " " + humidityString);
+      display.drawXbm(17, 48, sensorSymbol_width, sensorSymbol_height, sensorSymbol);
+    }
+    else
+    {
+      tempString = "NaN";
+      humidityString = "NaN";
+    }
+    if (Blynk.connected())
+    {
+      display.drawXbm(0, 48, wifiSymbol_width, wifiSymbol_height, wifiSymbol);
+    }
+    display.drawXbm(0, 0, tempSymbol_width, tempSymbol_height, tempSymbol);
+    display.drawString(16, 0, tempString);
+    if (t > ourWrapper.getTempAlarmLevel() || t == -1)
+    {
+      display.drawXbm(100, 0, crossedSymbol_width, crossedSymbol_height, crossedSymbol);
+    }
+    else
+    {
+      display.drawXbm(100, 0, checkedSymbol_width, checkedSymbol_height, checkedSymbol);
+    }
+    display.drawXbm(0, 16, humiditySymbol_width, humiditySymbol_height, humiditySymbol);
+    display.drawString(16, 16, humidityString);
+    if (h > ourWrapper.getHumidityAlarmLevel() || h == -1)
+    {
+      display.drawXbm(100, 16, crossedSymbol_width, crossedSymbol_height, crossedSymbol);
+    }
+    else
+    {
+      display.drawXbm(100, 16, checkedSymbol_width, checkedSymbol_height, checkedSymbol);
+    }
+    /*
+     * Date and time
+     */
+    String currentTime = String(hour()) + ":" + minute();
+    String currentDate = String(month()) + "/" + day() + "/" + year();
+    display.setTextAlignment(TEXT_ALIGN_RIGHT);
+    display.drawString(128, 32, currentDate);
+    display.drawString(128, 48, currentTime);
     display.display();
     ourWrapper.serviceAlarm(t, h);
     ourWrapper.updateLCD(lcd, t, h);
