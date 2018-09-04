@@ -1,5 +1,5 @@
   /**
-   DHT22 + SH1106 test program
+   SI7021 + SH1106 test program
    Pin connection scheme
    SH1106 OLED
     5V -> VCC
@@ -25,8 +25,8 @@ char auth[] = "439c6c8b9e6b43089fbba071d3d1983e";
 
 // Your WiFi credentials.
 // Set password to "" for open networks.
-char ssid[] = "Phong An";
-char pass[] = "28091963";
+char ssid[] = "Chaty";
+char pass[] = "#Varicella";
 
 WidgetLCD lcd(V6);
 
